@@ -1,0 +1,30 @@
+name: Build Musical Android APK
+on: [push, workflow_dispatch]
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack ZIP
+        run: |
+          if [ -f "Musical_Android_Project.zip" ]; then
+            unzip -q -o Musical_Android_Project.zip
+          fi
+          if [ -d "Musical" ] && [ -f "Musical/settings.gradle.kts" ]; then
+            shopt -s dotglob
+            mv Musical/* .
+          fi
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.7'
+      - name: Build Debug APK
+        run: gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Musical-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
